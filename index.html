@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>OpsFlow</title>
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--ink:#14213d;--mut:#6b7385;--line:#e4e7ee;--pri:#1f6feb;--priInk:#fff;
+--new:#7c5cff;--prog:#e8890c;--done:#1a9d5a;--urg:#d93a3a;--high:#e8890c;--med:#1f6feb;--low:#8b93a5;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1420;--card:#172033;--ink:#e8ecf5;--mut:#98a2b8;--line:#26314a;--pri:#4b8df8;--new:#9d85ff;--prog:#f3a23a;--done:#3cc17d;--urg:#f06262;--high:#f3a23a;--med:#4b8df8;--low:#8b93a5;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1420;--card:#172033;--ink:#e8ecf5;--mut:#98a2b8;--line:#26314a;--pri:#4b8df8;--new:#9d85ff;--prog:#f3a23a;--done:#3cc17d;--urg:#f06262;--high:#f3a23a;--med:#4b8df8;--low:#8b93a5;color-scheme:dark}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--card);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:16px;padding:10px 18px;flex-wrap:wrap}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--card);z-index:10}
+.logo{font-weight:800;font-size:18px;letter-spacing:-.3px}.logo span{color:var(--pri)}
+.tag{color:var(--mut);font-size:12px;display:block;font-weight:400;letter-spacing:0}
+nav{display:flex;gap:4px;margin-left:auto}
+nav button,.btn{border:1px solid var(--line);background:transparent;color:var(--ink);padding:8px 14px;border-radius:8px;font:inherit;cursor:pointer}
+nav button.on{background:var(--pri);color:var(--priInk);border-color:var(--pri)}
+.btn.p{background:var(--pri);color:var(--priInk);border-color:var(--pri);font-weight:600}.btn.d{color:var(--urg)}
+main{max-width:1100px;margin:0 auto;padding:18px}
+h2{margin:0 0 14px;font-size:20px}h3{margin:0 0 12px;font-size:14px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px}
+.grid{display:grid;gap:12px}.kpis{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:12px}
+.two{grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.kpi b{display:block;font-size:30px;line-height:1.1}.kpi small{color:var(--mut)}
+.kpi{border-left:4px solid var(--c,var(--pri))}
+.bar{display:grid;grid-template-columns:110px 1fr 28px;gap:10px;align-items:center;margin:8px 0;font-size:13px}
+.bar i{display:block;height:10px;border-radius:5px;background:var(--c,var(--pri));min-width:2px}
+.bar div{background:var(--line);border-radius:5px}
+.act{padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}.act:last-child{border:0}.act time{color:var(--mut);margin-left:6px}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+.tools input{flex:1;min-width:160px;width:auto}.tools select{width:auto}
+.task{display:grid;grid-template-columns:1fr auto;gap:6px 12px;padding:12px 14px;margin-bottom:8px;border-left:4px solid var(--c,var(--low))}
+.task h4{margin:0;font-size:15px}.task p{margin:2px 0 0;color:var(--mut);font-size:13px}
+.meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.pill{font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;border:1px solid var(--line);color:var(--mut)}
+.pill.late{color:var(--urg);border-color:var(--urg)}
+.acts{display:flex;gap:6px;align-items:flex-start}.acts button{padding:5px 9px;font-size:12px}
+.empty{text-align:center;color:var(--mut);padding:30px}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);width:min(520px,94vw);padding:20px}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+label{display:block;font-size:12px;color:var(--mut);margin:10px 0 4px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.foot{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+@media(max-width:560px){nav{margin-left:0;width:100%}nav button{flex:1}.row{grid-template-columns:1fr}.bar{grid-template-columns:90px 1fr 24px}}
+.login{display:grid;gap:4px}.err{color:var(--urg);font-size:13px;min-height:18px}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+</head>
+<body>
+<header>
+  <div class="logo">Ops<span>Flow</span><span class="tag">Turn operational messages into actionable tasks.</span></div>
+  <nav><button data-v="dashboard">Dashboard</button><button data-v="tasks">Tasks</button></nav><button class="btn" id="so">Sign out</button>
+</header>
+<main id="app"></main>
+
+<dialog id="login"><form id="lf" class="login" style="margin:0"><h2>Sign in to OpsFlow</h2>
+  <label>Email</label><input id="em" type="email" required autocomplete="username"><label>Password</label><input id="pw" type="password" required autocomplete="current-password">
+  <div class="err" id="le"></div><div class="foot"><button class="btn p" type="submit">Sign in</button></div></form></dialog>
+<dialog id="dlg"><form method="dialog" id="f" style="margin:0">
+  <h2 id="dt">New task</h2>
+  <label>Title</label><input id="title" required maxlength="120" placeholder="e.g. Room 412 – AC not cooling">
+  <label>Description</label><textarea id="desc" rows="3" placeholder="Details, guest name, location…"></textarea>
+  <div class="row"><div><label>Department</label><select id="dept"></select></div>
+  <div><label>Assignee</label><select id="who"></select></div></div>
+  <div class="row"><div><label>Priority</label><select id="pri"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="urgent">Urgent</option></select></div>
+  <div><label>Deadline</label><input type="datetime-local" id="due"></div></div>
+  <div class="row"><div><label>Status</label><select id="st"><option value="new">New</option><option value="progress">In progress</option><option value="done">Done</option></select></div><div></div></div>
+  <div class="foot"><button type="button" class="btn" id="cx">Cancel</button><button type="submit" class="btn p">Save task</button></div>
+</form></dialog>
+
+<script>
+const DEPTS=["Front Office","Housekeeping","Maintenance","Bell Team","Concierge","F&B"];
+const STAFF=["Unassigned","Maria K.","Andreas P.","Elena S.","Nikos T.","Sofia D.","George M."];
+const PRI={urgent:"var(--urg)",high:"var(--high)",medium:"var(--med)",low:"var(--low)"};
+const ST={new:"New",progress:"In progress",done:"Done"};
+const KEY="opsflow.v1";
+let S={tasks:[],log:[]},view="dashboard",editing=null,flt={q:"",st:"open",dept:"",pri:""};
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid=()=>Math.random().toString(36).slice(2,9);
+const iso=ms=>new Date(ms).toISOString();
+const H=3600e3;
+
+const CFG={url:"YOUR_SUPABASE_URL",key:"YOUR_SUPABASE_ANON_KEY"};
+const sb=supabase.createClient(CFG.url,CFG.key);
+const nz=v=>v||null;
+async function load(){
+  const [a,b]=await Promise.all([sb.from("tasks").select("*").order("created",{ascending:false}),sb.from("activity").select("t,m").order("t",{ascending:false}).limit(30)]);
+  if(a.error||b.error){alert("Could not load data: "+(a.error||b.error).message);return}
+  S.tasks=a.data.map(t=>({...t,description:t.description||"",due:t.due||"",completed:t.completed||"",sender:t.sender||""}));
+  S.log=b.data;
+}
+async function refresh(){await load();render()}
+async function log(m){await sb.from("activity").insert({m})}
+async function dbSave(t){
+  const row={title:t.title,description:t.description,department:t.department,assignee:t.assignee,priority:t.priority,status:t.status,due:nz(t.due),completed:nz(t.completed)};
+  const q=t.id?sb.from("tasks").update(row).eq("id",t.id):sb.from("tasks").insert(row);
+  const {error}=await q;if(error)alert("Save failed: "+error.message);
+}
+let rt=null;
+function realtime(){if(rt)return;rt=sb.channel("ops").on("postgres_changes",{event:"*",schema:"public",table:"tasks"},refresh).on("postgres_changes",{event:"*",schema:"public",table:"activity"},refresh).subscribe()}
+async function boot(){
+  if(CFG.url.startsWith("YOUR")){$("#app").innerHTML='<div class="card empty">Set CFG.url and CFG.key at the top of the script (see README).</div>';return}
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){$("#login").showModal();return}
+  if($("#login").open)$("#login").close();
+  await refresh();realtime();
+}
+$("#login").addEventListener("cancel",e=>e.preventDefault());
+$("#lf").addEventListener("submit",async e=>{e.preventDefault();
+  const {error}=await sb.auth.signInWithPassword({email:$("#em").value.trim(),password:$("#pw").value});
+  if(error){$("#le").textContent=error.message;return}
+  $("#le").textContent="";boot();
+});
+$("#so").onclick=async()=>{await sb.auth.signOut();location.reload()};
+
+const isOpen=t=>t.status!=="done";
+const isLate=t=>isOpen(t)&&t.due&&new Date(t.due)<new Date();
+const sameDay=(a,b)=>new Date(a).toDateString()===new Date(b).toDateString();
+function fmt(d){return new Date(d).toLocaleString([], {day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}
+function ago(d){const m=Math.round((Date.now()-new Date(d))/6e4);return m<1?"just now":m<60?m+" min ago":m<1440?Math.round(m/60)+" h ago":Math.round(m/1440)+" d ago"}
+
+function bars(map,max,colorFn){
+  const m=Math.max(1,...Object.values(map));
+  return Object.entries(map).map(([k,v])=>`<div class="bar"><span>${esc(k)}</span><div><i style="width:${v/m*100}%;--c:${colorFn?colorFn(k):"var(--pri)"}"></i></div><b>${v}</b></div>`).join("");
+}
+
+function dash(){
+  const T=S.tasks,open=T.filter(isOpen);
+  const k=[["Open tasks",open.length,"var(--pri)"],["New",T.filter(t=>t.status==="new").length,"var(--new)"],["In progress",T.filter(t=>t.status==="progress").length,"var(--prog)"],["Done today",T.filter(t=>t.status==="done"&&t.completed&&sameDay(t.completed,Date.now())).length,"var(--done)"],["Overdue",T.filter(isLate).length,"var(--urg)"],["Urgent",open.filter(t=>t.priority==="urgent").length,"var(--urg)"]];
+  const byD={};DEPTS.forEach(d=>byD[d]=open.filter(t=>t.department===d).length);
+  const byP={};["urgent","high","medium","low"].forEach(p=>byP[p[0].toUpperCase()+p.slice(1)]=open.filter(t=>t.priority===p).length);
+  return `<h2>Operations overview</h2>
+  <div class="grid kpis">${k.map(([l,v,c])=>`<div class="card kpi" style="--c:${c}"><b>${v}</b><small>${l}</small></div>`).join("")}</div>
+  <div class="grid two"><div class="card"><h3>Open tasks by department</h3>${bars(byD)}</div>
+  <div class="card"><h3>Open tasks by priority</h3>${bars(byP,0,k=>PRI[k.toLowerCase()])}</div></div>
+  <div class="card"><h3>Recent activity</h3>${S.log.slice(0,8).map(a=>`<div class="act">${esc(a.m)}<time>${ago(a.t)}</time></div>`).join("")||'<div class="empty">No activity yet</div>'}</div>`;
+}
+
+function list(){
+  const q=flt.q.toLowerCase();
+  const rows=S.tasks.filter(t=>(flt.st==="all"||(flt.st==="open"?isOpen(t):t.status===flt.st))&&(!flt.dept||t.department===flt.dept)&&(!flt.pri||t.priority===flt.pri)&&(!q||(t.title+t.description+t.assignee).toLowerCase().includes(q)))
+   .sort((a,b)=>(a.due||"9").localeCompare(b.due||"9"));
+  const opt=(arr,sel)=>arr.map(x=>`<option ${x===sel?"selected":""}>${esc(x)}</option>`).join("");
+  return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h2 style="margin:0">Tasks</h2><button class="btn p" data-a="new">+ New task</button></div>
+  <div class="tools"><input id="q" placeholder="Search tasks…" value="${esc(flt.q)}">
+  <select id="fs"><option value="open" ${flt.st==="open"?"selected":""}>Open</option><option value="all" ${flt.st==="all"?"selected":""}>All</option>${Object.entries(ST).map(([k,v])=>`<option value="${k}" ${flt.st===k?"selected":""}>${v}</option>`).join("")}</select>
+  <select id="fd"><option value="">All departments</option>${opt(DEPTS,flt.dept)}</select>
+  <select id="fp"><option value="">All priorities</option>${["urgent","high","medium","low"].map(p=>`<option value="${p}" ${flt.pri===p?"selected":""}>${p[0].toUpperCase()+p.slice(1)}</option>`).join("")}</select></div>
+  ${rows.map(t=>`<div class="card task" style="--c:${PRI[t.priority]}"><div><h4>${esc(t.title)}</h4>${t.description?`<p>${esc(t.description)}</p>`:""}
+  <div class="meta"><span class="pill">${ST[t.status]}</span>${t.source==="whatsapp"?'<span class="pill" style="color:var(--done);border-color:var(--done)">WhatsApp · '+esc(t.sender)+'</span>':""}<span class="pill">${esc(t.department)}</span><span class="pill">${esc(t.assignee)}</span><span class="pill" style="color:${PRI[t.priority]}">${t.priority}</span>${t.due?`<span class="pill ${isLate(t)?"late":""}">${isLate(t)?"Overdue · ":"Due "}${fmt(t.due)}</span>`:""}</div></div>
+  <div class="acts">${isOpen(t)?`<button class="btn" data-a="adv" data-id="${t.id}">${t.status==="new"?"Start":"Complete"}</button>`:""}<button class="btn" data-a="edit" data-id="${t.id}">Edit</button><button class="btn d" data-a="del" data-id="${t.id}">Delete</button></div></div>`).join("")||'<div class="card empty">No tasks match your filters.</div>'}`;
+}
+
+function render(){
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.v===view));
+  $("#app").innerHTML=view==="dashboard"?dash():list();
+  const q=$("#q");if(q){q.oninput=e=>{flt.q=e.target.value;const p=e.target.selectionStart;render();const n=$("#q");n.focus();n.setSelectionRange(p,p)}}
+  [["fs","st"],["fd","dept"],["fp","pri"]].forEach(([i,k])=>{const el=$("#"+i);if(el)el.onchange=e=>{flt[k]=e.target.value;render()}});
+}
+
+function fill(sel,arr){sel.innerHTML=arr.map(x=>`<option>${esc(x)}</option>`).join("")}
+function toLocal(d){if(!d)return "";const x=new Date(d);x.setMinutes(x.getMinutes()-x.getTimezoneOffset());return x.toISOString().slice(0,16)}
+function openForm(id){
+  editing=id?S.tasks.find(t=>t.id===id):null;
+  $("#dt").textContent=editing?"Edit task":"New task";
+  const t=editing||{title:"",description:"",department:DEPTS[0],assignee:STAFF[0],priority:"medium",status:"new",due:""};
+  $("#title").value=t.title;$("#desc").value=t.description;$("#dept").value=t.department;$("#who").value=t.assignee;$("#pri").value=t.priority;$("#st").value=t.status;$("#due").value=toLocal(t.due);
+  $("#dlg").showModal();
+}
+function setStatus(t,s){t.status=s;t.completed=s==="done"?iso(Date.now()):""}
+$("#f").addEventListener("submit",async e=>{
+  const v={title:$("#title").value.trim(),description:$("#desc").value.trim(),department:$("#dept").value,assignee:$("#who").value,priority:$("#pri").value,due:$("#due").value?new Date($("#due").value).toISOString():""};
+  if(!v.title)return;
+  const t=editing?Object.assign(editing,v):{...v,source:"manual"};
+  setStatus(t,$("#st").value);
+  await dbSave(t);await log((editing?"Task updated: ":"Task created: ")+v.title);await refresh();
+});
+$("#cx").onclick=()=>$("#dlg").close();
+document.addEventListener("click",async e=>{
+  const b=e.target.closest("[data-a]");if(b){
+    const t=S.tasks.find(x=>x.id===b.dataset.id),a=b.dataset.a;
+    if(a==="new")openForm();
+    else if(a==="edit")openForm(t.id);
+    else if(a==="adv"){const s=t.status==="new"?"progress":"done";setStatus(t,s);await dbSave(t);await log(`${t.title} → ${ST[s]}`);await refresh()}
+    else if(a==="del"&&confirm("Delete this task?")){await sb.from("tasks").delete().eq("id",t.id);await log("Task deleted: "+t.title);await refresh()}
+    return}
+  const n=e.target.closest("nav button");if(n){view=n.dataset.v;location.hash=view;render()}
+});
+function route(){const h=location.hash.slice(1);view=h==="tasks"?"tasks":"dashboard";render()}
+window.addEventListener("hashchange",route);
+fill($("#dept"),DEPTS);fill($("#who"),STAFF);route();boot();
+</script>
+</body>
+</html>
