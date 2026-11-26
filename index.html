@@ -87,7 +87,7 @@ const uid=()=>Math.random().toString(36).slice(2,9);
 const iso=ms=>new Date(ms).toISOString();
 const H=3600e3;
 
-const CFG={url:"YOUR_SUPABASE_URL",key:"YOUR_SUPABASE_ANON_KEY"};
+const CFG={url:"https://xbfofqfhgshvjutzwlkt.supabase.co",key:"sb_publishable_mKNYpdLW2zJNaVTz8tvnGQ_vxyLkVm5"};
 const sb=supabase.createClient(CFG.url,CFG.key);
 const nz=v=>v||null;
 async function load(){
@@ -106,7 +106,7 @@ async function dbSave(t){
 let rt=null;
 function realtime(){if(rt)return;rt=sb.channel("ops").on("postgres_changes",{event:"*",schema:"public",table:"tasks"},refresh).on("postgres_changes",{event:"*",schema:"public",table:"activity"},refresh).subscribe()}
 async function boot(){
-  if(CFG.url.startsWith("YOUR")){$("#app").innerHTML='<div class="card empty">Set CFG.url and CFG.key at the top of the script (see README).</div>';return}
+  if(!CFG.url){$("#app").innerHTML='<div class="card empty">Set CFG.url and CFG.key at the top of the script (see README).</div>';return}
   const {data:{session}}=await sb.auth.getSession();
   if(!session){$("#login").showModal();return}
   if($("#login").open)$("#login").close();
